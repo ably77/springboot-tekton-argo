@@ -32,14 +32,14 @@ items:
     host: ""
     to:
       name: basic-spring-boot
-#- apiVersion: image.openshift.io/v1
-#  kind: ImageStream
-#  metadata:
-#    labels:
-#      app: basic-spring-boot
-#      template: basic-spring-boot
-#    name: basic-spring-boot
-#    namespace: basic-spring-boot-build
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: basic-spring-boot
+      template: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
