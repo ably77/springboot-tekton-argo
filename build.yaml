@@ -3,8 +3,6 @@ items:
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: tekton
@@ -12,8 +10,6 @@ items:
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: tekton_edit
@@ -25,21 +21,17 @@ items:
   subjects:
   - kind: ServiceAccount
     name: tekton
-- apiVersion: image.openshift.io/v1
-  kind: ImageStream
-  metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
-    labels:
-      application: basic-spring-boot
-      template: generic-java-jenkins-pipeline
-    name: basic-spring-boot
-    namespace: basic-spring-boot-build
+#- apiVersion: image.openshift.io/v1
+#  kind: ImageStream
+#  metadata:
+#    labels:
+#      application: basic-spring-boot
+#      template: generic-java-jenkins-pipeline
+#    name: basic-spring-boot
+#    namespace: basic-spring-boot-build
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: basic-spring-boot-image
@@ -52,8 +44,6 @@ items:
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: basic-spring-boot-git
@@ -68,8 +58,6 @@ items:
 - apiVersion: tekton.dev/v1alpha1
   kind: Task
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: maven-build-binary-build
@@ -116,8 +104,6 @@ items:
 - apiVersion: tekton.dev/v1alpha1
   kind: Pipeline
   metadata:
-    #annotations:
-      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: basic-spring-boot-pipeline
