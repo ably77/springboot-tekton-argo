@@ -4,7 +4,7 @@ metadata:
   labels:
     tekton.dev/pipeline: basic-spring-boot-pipeline
     template: generic-java-jenkins-pipeline
-  name: basic-spring-boot-pipeline-run-bvz9l
+  name: basic-spring-boot-pipeline-run-v1
   namespace: basic-spring-boot-build
 spec:
   pipelineRef:
