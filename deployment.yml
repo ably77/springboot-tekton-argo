@@ -21,6 +21,7 @@ items:
   kind: Route
   metadata:
     annotations:
+      argocd.argoproj.io/sync-options: Validate=false
       description: Route for application's http service.
     labels:
       app: basic-spring-boot
