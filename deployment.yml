@@ -1,148 +1,147 @@
 apiVersion: v1
-kind: Template
-labels:
-  template: basic-spring-boot
-metadata:
-  annotations:
-    description: Application template for JWS applications built using a Jenkins Pipeline
-    iconClass: icon-tomcat
-    tags: java,spring
-    version: 1.2.0
-  name: basic-spring-boot
-objects:
+items:
 - apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      description: The web server's http port.
-    labels:
-      app: basic-spring-boot
-    name: basic-spring-boot
-    namespace: basic-spring-boot-build
-  spec:
-    ports:
-    - port: 8080
-      targetPort: 8080
-    selector:
-      deploymentConfig: basic-spring-boot
-- apiVersion: v1
-  id: basic-spring-boot-http
-  kind: Route
-  metadata:
-    annotations:
-      description: Route for application's http service.
-    labels:
-      app: basic-spring-boot
-    name: basic-spring-boot
-    namespace: basic-spring-boot-build
-  spec:
-    host: ${HOSTNAME_HTTP}
-    to:
-      name: basic-spring-boot
-- apiVersion: v1
-  kind: ImageStream
+  kind: ServiceAccount
   metadata:
     labels:
-      app: basic-spring-boot
-    name: basic-spring-boot
+      template: generic-java-jenkins-pipeline
+    name: tekton
     namespace: basic-spring-boot-build
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    labels:
-      app: basic-spring-boot
-    name: basic-spring-boot
-    namespace: basic-spring-boot-build
-  spec:
-    replicas: 1
-    selector:
-      deploymentConfig: basic-spring-boot
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          app: basic-spring-boot
-          deploymentConfig: basic-spring-boot
-        name: basic-spring-boot
-      spec:
-        containers:
-        - env:
-          - name: JWS_ADMIN_USERNAME
-            value: ${JWS_ADMIN_USERNAME}
-          - name: JWS_ADMIN_PASSWORD
-            value: ${JWS_ADMIN_PASSWORD}
-          image: basic-spring-boot
-          imagePullPolicy: Always
-          name: basic-spring-boot
-          ports:
-          - containerPort: 8778
-            name: jolokia
-            protocol: TCP
-          - containerPort: 8080
-            name: http
-            protocol: TCP
-          readinessProbe:
-            exec:
-              command:
-              - /bin/bash
-              - -c
-              - curl -s 'http://localhost:8080${READINESS_PATH}'
-                |grep -iq '${READINESS_RESPONSE}'
-        terminationGracePeriodSeconds: 60
-    triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - basic-spring-boot
-        from:
-          kind: ImageStreamTag
-          name: basic-spring-boot:latest
-      type: ImageChange
-    - type: ConfigChange
-- apiVersion: v1
-  groupNames: null
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
-    creationTimestamp: null
     labels:
-      template: basic-tomcat-template
-    name: ${SA_NAME}_edit
+      template: generic-java-jenkins-pipeline
+    name: tekton_edit
     namespace: basic-spring-boot-build
   roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: ${SA_NAME}
-    namespace: ${SA_NAMESPACE}
-  userNames:
-  - system:serviceaccount:${SA_NAMESPACE}:${SA_NAME}
-parameters:
-- description: The name for the application.
-  name: APPLICATION_NAME
-  required: true
-  value: basic-spring-boot
-- description: The namespace to deploy into
-  name: NAMESPACE
-  required: true
-  value: basic-spring-boot-build
-- description: Name of a service account that can deploy to this project
-  name: SA_NAME
-  required: true
-  value: tekton
-- description: Namespace of service account that can deploy to this project
-  name: SA_NAMESPACE
-  required: true
-- description: 'Custom hostname for http service route.  Leave blank for default hostname,
-    e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTP
-- description: 'URI to check for app health'
-  name: READINESS_PATH
-  required: true
-  value: '/health'
-  #value: '/'
-- description: 'String value expected back from readiness check'
-  name: READINESS_RESPONSE
-  required: true
-  #value: 'Hello World! this is a test v1!'
-  value: 'status.:.UP'
+    name: tekton
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: basic-spring-boot
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    labels:
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot-image
+    namespace: basic-spring-boot-build
+  spec:
+    params:
+    - name: url
+      value: image-registry.openshift-image-registry.svc:5000/basic-spring-boot-build/basic-spring-boot
+    type: image
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    labels:
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot-git
+    namespace: basic-spring-boot-build
+  spec:
+    params:
+    - name: url
+      value: https://github.com/ably77/spring-rest.git
+    - name: revision
+      value: master
+    type: git
+- apiVersion: tekton.dev/v1alpha1
+  kind: Task
+  metadata:
+    labels:
+      template: generic-java-jenkins-pipeline
+    name: maven-build-binary-build
+    namespace: basic-spring-boot-build
+  spec:
+    inputs:
+      resources:
+      - name: source
+        type: git
+    steps:
+    - args:
+      - package
+      command:
+      - /usr/bin/mvn
+      image: maven:3.6.0-jdk-8-slim
+      name: package
+      workingDir: /workspace/source
+    - args:
+      - -p
+      - /workspace/source/upload
+      command:
+      - mkdir
+      image: quay.io/openshift-pipeline/openshift-cli:latest
+      name: make-upload-dir
+    - args:
+      - /workspace/source/target/shift-rest-1.0.0-SNAPSHOT.jar
+      - /workspace/source/upload
+      command:
+      - cp
+      image: quay.io/openshift-pipeline/openshift-cli:latest
+      name: copy-assets
+    - args:
+      - start-build
+      - -w
+      - -F
+      - basic-spring-boot
+      - --from-dir
+      - .
+      command:
+      - /usr/local/bin/oc
+      image: quay.io/openshift-pipeline/openshift-cli:latest
+      name: oc-binary-build
+      workingDir: /workspace/source/upload
+- apiVersion: tekton.dev/v1alpha1
+  kind: Pipeline
+  metadata:
+    labels:
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot-pipeline
+    namespace: basic-spring-boot-build
+  spec:
+    resources:
+    - name: basic-spring-boot-git
+      type: git
+    tasks:
+    - name: maven-build-binary-build
+      resources:
+        inputs:
+        - name: source
+          resource: basic-spring-boot-git
+      taskRef:
+        name: maven-build-binary-build
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      application: basic-spring-boot
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: basic-spring-boot:latest
+    source:
+      binary: {}
+      type: Binary
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: redhat-openjdk18-openshift:1.1
+          namespace: openshift
+      type: Source
+kind: List
+metadata: {}
