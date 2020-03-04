@@ -137,8 +137,8 @@ items:
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
-    annotations:
-      argocd.argoproj.io/sync-options: Validate=false
+    #annotations:
+      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       application: basic-spring-boot
       template: generic-java-jenkins-pipeline
