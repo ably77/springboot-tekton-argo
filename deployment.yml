@@ -5,6 +5,7 @@ items:
   metadata:
     annotations:
       description: The web server's http port.
+      argocd.argoproj.io/sync-options: Validate=false
     labels:
       app: basic-spring-boot
       template: basic-spring-boot
@@ -22,6 +23,7 @@ items:
   metadata:
     annotations:
       description: Route for application's http service.
+      argocd.argoproj.io/sync-options: Validate=false
     labels:
       app: basic-spring-boot
       template: basic-spring-boot
@@ -39,6 +41,7 @@ items:
       template: basic-spring-boot
     name: basic-spring-boot
     namespace: basic-spring-boot-build
+    argocd.argoproj.io/sync-options: Validate=false
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
@@ -47,6 +50,7 @@ items:
       template: basic-spring-boot
     name: basic-spring-boot
     namespace: basic-spring-boot-build
+    argocd.argoproj.io/sync-options: Validate=false
   spec:
     replicas: 1
     selector:
@@ -97,6 +101,7 @@ items:
   groupNames: null
   kind: RoleBinding
   metadata:
+    argocd.argoproj.io/sync-options: Validate=false
     creationTimestamp: null
     labels:
       template: basic-spring-boot
