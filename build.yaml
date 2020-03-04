@@ -21,14 +21,14 @@ items:
   subjects:
   - kind: ServiceAccount
     name: tekton
-#- apiVersion: image.openshift.io/v1
-#  kind: ImageStream
-#  metadata:
-#    labels:
-#      application: basic-spring-boot
-#      template: generic-java-jenkins-pipeline
-#    name: basic-spring-boot
-#    namespace: basic-spring-boot-build
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: basic-spring-boot
+      template: generic-java-jenkins-pipeline
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
