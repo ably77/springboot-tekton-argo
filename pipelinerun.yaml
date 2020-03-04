@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
   annotations:
+    argocd.argoproj.io/sync-options: Validate=false
   labels:
     tekton.dev/pipeline: basic-spring-boot-pipeline
     template: generic-java-jenkins-pipeline
