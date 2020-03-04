@@ -16,55 +16,55 @@ objects:
     annotations:
       description: The web server's http port.
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
     ports:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: ${APPLICATION_NAME}
+      deploymentConfig: basic-spring-boot
 - apiVersion: v1
-  id: ${APPLICATION_NAME}-http
+  id: basic-spring-boot-http
   kind: Route
   metadata:
     annotations:
       description: Route for application's http service.
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
     host: ${HOSTNAME_HTTP}
     to:
-      name: ${APPLICATION_NAME}
+      name: basic-spring-boot
 - apiVersion: v1
   kind: ImageStream
   metadata:
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
     replicas: 1
     selector:
-      deploymentConfig: ${APPLICATION_NAME}
+      deploymentConfig: basic-spring-boot
     strategy:
       type: Recreate
     template:
       metadata:
         labels:
-          app: ${APPLICATION_NAME}
-          deploymentConfig: ${APPLICATION_NAME}
-        name: ${APPLICATION_NAME}
+          app: basic-spring-boot
+          deploymentConfig: basic-spring-boot
+        name: basic-spring-boot
       spec:
         containers:
         - env:
@@ -72,9 +72,9 @@ objects:
             value: ${JWS_ADMIN_USERNAME}
           - name: JWS_ADMIN_PASSWORD
             value: ${JWS_ADMIN_PASSWORD}
-          image: ${APPLICATION_NAME}
+          image: basic-spring-boot
           imagePullPolicy: Always
-          name: ${APPLICATION_NAME}
+          name: basic-spring-boot
           ports:
           - containerPort: 8778
             name: jolokia
@@ -94,10 +94,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - ${APPLICATION_NAME}
+        - basic-spring-boot
         from:
           kind: ImageStreamTag
-          name: ${APPLICATION_NAME}:latest
+          name: basic-spring-boot:latest
       type: ImageChange
     - type: ConfigChange
 - apiVersion: v1
@@ -108,7 +108,7 @@ objects:
     labels:
       template: basic-tomcat-template
     name: ${SA_NAME}_edit
-    namespace: ${NAMESPACE}
+    namespace: basic-spring-boot-build
   roleRef:
     name: edit
   subjects:
