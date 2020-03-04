@@ -21,7 +21,6 @@ items:
   kind: Route
   metadata:
     annotations:
-      argocd.argoproj.io/sync-options: Validate=false
       description: Route for application's http service.
     labels:
       app: basic-spring-boot
@@ -32,6 +31,14 @@ items:
     host: ""
     to:
       name: basic-spring-boot
+#- apiVersion: image.openshift.io/v1
+#  kind: ImageStream
+#  metadata:
+#    labels:
+#      app: basic-spring-boot
+#      template: basic-spring-boot
+#    name: basic-spring-boot
+#    namespace: basic-spring-boot-build
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
