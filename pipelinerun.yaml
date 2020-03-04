@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  annotations:
+  labels:
+    tekton.dev/pipeline: basic-spring-boot-pipeline
+    template: generic-java-jenkins-pipeline
+  name: basic-spring-boot-pipeline-run-v1
+spec:
+  pipelineRef:
+    name: basic-spring-boot-pipeline
+  resources:
+  - name: basic-spring-boot-git
+    resourceRef:
+      name: basic-spring-boot-git
+  serviceAccountName: tekton
+  timeout: 1h0m0s
