@@ -52,8 +52,8 @@ items:
 - apiVersion: tekton.dev/v1alpha1
   kind: PipelineResource
   metadata:
-    annotations:
-      argocd.argoproj.io/sync-options: Validate=false
+    #annotations:
+      #argocd.argoproj.io/sync-options: Validate=false
     labels:
       template: generic-java-jenkins-pipeline
     name: basic-spring-boot-git
