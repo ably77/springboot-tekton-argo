@@ -1,70 +1,57 @@
 apiVersion: v1
-kind: Template
-labels:
-  template: basic-spring-boot
-metadata:
-  annotations:
-    description: Application template for JWS applications built using a Jenkins Pipeline
-    iconClass: icon-tomcat
-    tags: java,spring
-    version: 1.2.0
-  name: basic-spring-boot
-objects:
+items:
 - apiVersion: v1
   kind: Service
   metadata:
     annotations:
       description: The web server's http port.
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+      template: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
     ports:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: ${APPLICATION_NAME}
-- apiVersion: v1
-  id: ${APPLICATION_NAME}-http
+      deploymentConfig: basic-spring-boot
+- apiVersion: route.openshift.io/v1
+  id: basic-spring-boot-http
   kind: Route
   metadata:
     annotations:
+      argocd.argoproj.io/sync-options: Validate=false
       description: Route for application's http service.
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+      template: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
-    host: ${HOSTNAME_HTTP}
+    host: ""
     to:
-      name: ${APPLICATION_NAME}
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
-- apiVersion: v1
+      name: basic-spring-boot
+- apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
     labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-    namespace: ${NAMESPACE}
+      app: basic-spring-boot
+      template: basic-spring-boot
+    name: basic-spring-boot
+    namespace: basic-spring-boot-build
   spec:
     replicas: 1
     selector:
-      deploymentConfig: ${APPLICATION_NAME}
+      deploymentConfig: basic-spring-boot
     strategy:
       type: Recreate
     template:
       metadata:
         labels:
-          app: ${APPLICATION_NAME}
-          deploymentConfig: ${APPLICATION_NAME}
-        name: ${APPLICATION_NAME}
+          app: basic-spring-boot
+          deploymentConfig: basic-spring-boot
+        name: basic-spring-boot
       spec:
         containers:
         - env:
@@ -72,9 +59,9 @@ objects:
             value: ${JWS_ADMIN_USERNAME}
           - name: JWS_ADMIN_PASSWORD
             value: ${JWS_ADMIN_PASSWORD}
-          image: ${APPLICATION_NAME}
+          image: basic-spring-boot
           imagePullPolicy: Always
-          name: ${APPLICATION_NAME}
+          name: basic-spring-boot
           ports:
           - containerPort: 8778
             name: jolokia
@@ -87,59 +74,34 @@ objects:
               command:
               - /bin/bash
               - -c
-              - curl -s 'http://localhost:8080${READINESS_PATH}'
-                |grep -iq '${READINESS_RESPONSE}'
+              - curl -s 'http://localhost:8080/health' |grep -iq 'status.:.UP'
         terminationGracePeriodSeconds: 60
     triggers:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - ${APPLICATION_NAME}
+        - basic-spring-boot
         from:
           kind: ImageStreamTag
-          name: ${APPLICATION_NAME}:latest
+          name: basic-spring-boot:latest
       type: ImageChange
     - type: ConfigChange
-- apiVersion: v1
+- apiVersion: authorization.openshift.io/v1
   groupNames: null
   kind: RoleBinding
   metadata:
     creationTimestamp: null
     labels:
-      template: basic-tomcat-template
-    name: ${SA_NAME}_edit
-    namespace: ${NAMESPACE}
+      template: basic-spring-boot
+    name: tekton_edit
+    namespace: basic-spring-boot-build
   roleRef:
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: ${SA_NAME}
-    namespace: ${SA_NAMESPACE}
+    name: tekton
+    namespace: basic-spring-boot-build
   userNames:
-  - system:serviceaccount:${SA_NAMESPACE}:${SA_NAME}
-parameters:
-- description: The name for the application.
-  name: APPLICATION_NAME
-  required: true
-  value: jws-app
-- description: The namespace to deploy into
-  name: NAMESPACE
-  required: true
-- description: Name of a service account that can deploy to this project
-  name: SA_NAME
-  required: true
-  value: tekton
-- description: Namespace of service account that can deploy to this project
-  name: SA_NAMESPACE
-  required: true
-- description: 'Custom hostname for http service route.  Leave blank for default hostname,
-    e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTP
-- description: 'URI to check for app health'
-  name: READINESS_PATH
-  required: true
-  value: '/'
-- description: 'String value expected back from readiness check'
-  name: READINESS_RESPONSE
-  required: true
-  value: 'Hello World!'
+  - system:serviceaccount:basic-spring-boot-build:tekton
+kind: List
+metadata: {}
